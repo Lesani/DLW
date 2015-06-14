@@ -1,6 +1,0 @@
-08.06.2015: lcdlight(wert); // wert 0-255 gibt die Hellichkeit der LCD Beleuchtung an.
-09.06.2015:	Changelog in VS-Solution eingebunden
-			fehlende werte (init_delay, frame_delay, repeat, repeat_delay) implementiert
-			LEDBrightness(0-100); implementierung von der LED helligkeit in eine Funktion gekapselt
-			lcdlight(0-255); implementierung auf LCDBrightness(0-100) geändert
-			10sek delay nach beendigung durch warten auf Tastendruck ersetzt
