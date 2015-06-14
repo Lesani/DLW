@@ -19,12 +19,11 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="LICENSE.txt" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="Visual Micro\.DLW.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ChangeLog.txt" />
-    <Text Include="LICENSE.txt" />
   </ItemGroup>
 </Project>
