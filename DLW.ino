@@ -69,6 +69,7 @@ LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 Adafruit_NeoPixel npx1 = Adafruit_NeoPixel(STRIPPIXELS, NPX1Pin, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel npx2 = Adafruit_NeoPixel(STRIPPIXELS, NPX2Pin, NEO_GRB + NEO_KHZ800);
 
+//Make it easy to add new strips
 class NPX
 {
 public:
@@ -359,6 +360,7 @@ void showdelay(long delay, bool light = false, bool beep = false){
 		return result;
 	}
 
+	//Get Keypad values
 	int ReadKeypad() {
 		adc_key_in = analogRead(0);             // read the value from the sensor  
 		digitalWrite(13, HIGH);
@@ -378,8 +380,9 @@ void showdelay(long delay, bool light = false, bool beep = false){
 		return key;
 	}
 
-	int value(String s, int minwert, int maxwert, int wert, String pt, int stepsize){
-		//int stepsize = 1;
+	//Display a value to set on the screen
+	//value(What to set, e.g. "Brightness", minimum value, maximum value, default value, unit postfix, size of steps to change)
+	int value(String s, int minwert, int maxwert, int wert, String pt = "", int stepsize = 1){
 		lcd.clear();
 		print(s);
 		bool done = false;
@@ -427,7 +430,7 @@ void showdelay(long delay, bool light = false, bool beep = false){
 					delay(20);
 					break;
 				case sw_select:
-					menupos = 80;
+					menupos = 80; //if select is pressed, start the LED sequence
 					done = true;
 					break;
 				}
@@ -455,6 +458,7 @@ void showdelay(long delay, bool light = false, bool beep = false){
 		return k;
 	}
 
+	//File selection, uses stored files in array files[], user selects index
 	void fileselect(){
 		lcd.clear();
 		print(menu[menupos]);
@@ -487,7 +491,7 @@ void showdelay(long delay, bool light = false, bool beep = false){
 					if (selectedfile < 1){ selectedfile = filecount; }
 					break;
 				case sw_select:
-					menupos = 80;
+					menupos = 80; //if "Select" is pressed, start the display
 					done = true;
 					break;
 				}
@@ -527,44 +531,45 @@ void showdelay(long delay, bool light = false, bool beep = false){
 			frame_delay = value(menu[menupos], 0, 0, frame_delay, "us",1);
 			break;
 		case 5:
-			repeat = value(menu[menupos], 0, 0, repeat, "",1);
+			repeat = value(menu[menupos], 0, 0, repeat);
 			break;
 		case 6:
 			repeat_delay = value(menu[menupos], 0, 0, repeat_delay, "ms",10);
 			break;
-		case 7:
+		case 7: //When this is reached, do the LED stuff
 			menupos = 80;
 			break;
 		case 80:
 			LEDBrightness(brightness); //set LED to brightness
 
-			showdelay(init_delay, true, true);
+			showdelay(init_delay, true, true); //Initial delay before sequence start
 
 			for (int i = 0; i < repeat + 1; i++){
 				char char_file[15];
 				files[selectedfile].toCharArray(char_file,15);
 				debug("Showing:");
-				Serial.print("string: ");
-				Serial.println(files[selectedfile]);
-				Serial.print("Char: ");
 				Serial.println(char_file);
+
 				bmpDraw(char_file);
-				if (repeat > 0)
+
+				if (repeat > 0) //beep for repeats when previous display ends
 				{
 					npx.clear();
 					npx.show();
 					tone(BuzzerPin, 440, 50);
-					delay(repeat_delay);
-					tone(BuzzerPin, 440, 50);
+					if (repeat_delay > 0) //beep for repeats before next display starts
+					{
+						delay(repeat_delay);
+						tone(BuzzerPin, 440, 50);
+					}
 				}
 			}
-			tone(BuzzerPin, 880, 500);
+			tone(BuzzerPin, 880, 500); //beep when whoe sequence ends
 			npx.clear();
 			npx.show();
-			menupos = 99;
+			menupos = 99; //go to loop with dark display
 			break;
-		case 99:
-
+		case 99: //Loop with dark display until a button is pressed
 			LCDBrightness(LCDDark);
 			print("Finished...");
 			key = ReadKeypad();
@@ -574,7 +579,7 @@ void showdelay(long delay, bool light = false, bool beep = false){
 			oldkey = key_old = key;
 			menupos = 1;
 			break;
-		default:
+		default: //in case no or invalid menu position is set, go to file select
 			menupos = 1;
 			break;
 		}
