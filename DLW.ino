@@ -10,6 +10,7 @@ Timer1.attachInterrupt(FUNCTION);
 Timer1.start();
 */
 
+
 //Pin assignment
 #define NPX1Pin 30 //Strip 1
 #define NPX2Pin 31 //Strip 2
