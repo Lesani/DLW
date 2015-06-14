@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="DLW.ino" />
+    <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Visual Micro\.DLW.vsarduino.h">
@@ -24,5 +25,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ChangeLog.txt" />
+    <Text Include="LICENSE.txt" />
   </ItemGroup>
 </Project>
