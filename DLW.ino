@@ -3,13 +3,6 @@
 #include <SD.h>
 #include <Adafruit_NeoPixel.h>
 
-/*Code for Timer, used only for debugging:
-#include <TimerOne\TimerOne.h>
-Timer1.initialize(1 * 1000000);
-Timer1.attachInterrupt(FUNCTION);
-Timer1.start();
-*/
-
 //Pin assignment
 #define NPX1Pin 30 //Strip 1
 #define NPX2Pin 31 //Strip 2
