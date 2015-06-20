@@ -15,6 +15,13 @@ Timer1.start();
 #define NPX2Pin 31 //Strip 2
 #define BuzzerPin 3
 #define LCDBACKLIGHT 10
+#define StartButtonPin 33
+
+#define PinUp 38
+#define PinDown 39
+#define PinLeft 40
+#define PinRight 41
+#define PinSelect 42
 
 //Button values
 #define sw_none -1
@@ -55,15 +62,13 @@ int filecount;
 int selectedfile = 1;
 
 //Button stuff
-int adc_key_val[5] = { 30, 170, 390, 600, 800 };
-int NUM_KEYS = 5;
-int adc_key_in;
 int oldkey = -1;
 int key = -1;
 int key_old;
 
 //create display
-LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+//LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
+LiquidCrystal lcd(4, 6, 10, 11, 12, 13);
 
 //create both strips
 Adafruit_NeoPixel npx1 = Adafruit_NeoPixel(STRIPPIXELS, NPX1Pin, NEO_GRB + NEO_KHZ800);
@@ -126,6 +131,14 @@ void debug(String s){
 }
 
 void setup(){
+
+	pinMode(PinUp, INPUT_PULLUP);
+	pinMode(PinDown, INPUT_PULLUP);
+	pinMode(PinLeft, INPUT_PULLUP);
+	pinMode(PinRight, INPUT_PULLUP);
+
+	pinMode(PinSelect, INPUT_PULLUP);
+
 	lcd.begin(16, 2);
 	Serial.begin(115200);
 	Serial.println("NeoPX MacConker & Lesani");
@@ -197,7 +210,7 @@ void showdelay(long delay, bool light = false, bool beep = false){
 				case 3:
 					if ((ms + delay - millis()) <3120)
 					{
-						tone(BuzzerPin, 440, 50);
+						//tone(BuzzerPin, 440, 50);
 						
 						lastseconds = 2;
 					}
@@ -205,21 +218,21 @@ void showdelay(long delay, bool light = false, bool beep = false){
 				case 2:
 					if ((ms + delay - millis()) <2120)
 					{
-						tone(BuzzerPin, 440, 50);
+						//tone(BuzzerPin, 440, 50);
 						lastseconds = 1;
 					}
 					break;
 				case 1:
 					if ((ms + delay - millis()) <1120)
 					{
-						tone(BuzzerPin, 440, 50);
+						//tone(BuzzerPin, 440, 50);
 						lastseconds = 0;
 					}
 					break;
 				case 0:
 					if ((ms + delay - millis()) < 120)
 					{
-						tone(BuzzerPin, 880, 100);
+						//tone(BuzzerPin, 880, 100);
 						lastseconds = -1;
 					}
 					break;
@@ -362,22 +375,29 @@ void showdelay(long delay, bool light = false, bool beep = false){
 
 	//Get Keypad values
 	int ReadKeypad() {
-		adc_key_in = analogRead(0);             // read the value from the sensor  
-		digitalWrite(13, HIGH);
-		key = get_key(adc_key_in);              // convert into key press
+		int up = digitalRead(PinUp);
+		int down = digitalRead(PinDown);
+		int left = digitalRead(PinLeft);
+		int right = digitalRead(PinRight);
+		int select = digitalRead(PinSelect);
 
-		if (key != oldkey) {                    // if keypress is detected
-			delay(50);                            // wait for debounce time
-			adc_key_in = analogRead(0);           // read the value from the sensor  
-			key = get_key(adc_key_in);            // convert into key press
-			if (key != oldkey) {
-				oldkey = key;
-				if (key >= 0){
-					return key;
-				}
-			}
+		if (up == 0){
+			return sw_up;
 		}
-		return key;
+		if (down == 0){
+			return sw_down;
+		}
+		if (left == 0){
+			return sw_left;
+		}
+		if (right == 0){
+			return sw_right;
+		}
+		if (select == 0){
+			return sw_select;
+		}
+
+		return sw_none;
 	}
 
 	//Display a value to set on the screen
@@ -389,13 +409,14 @@ void showdelay(long delay, bool light = false, bool beep = false){
 		long key_old_millis;
 		while (!done){
 			int key = ReadKeypad();
-			//String pt2;
+			String pt2;
 			if (key != key_old || (key == key_old && key_old_millis + keydelay <= millis() && (key == sw_right || key == sw_left))){
-				//int stepsize2;
+				int stepsize2 = stepsize;
+				pt2 = pt;
 				if (key != key_old){
 					key_old_millis = millis();
 				}
-				/*
+				
 				if (key_old_millis + (keydelay +5000) <= millis()){
 					stepsize2 = stepsize * 10;
 					pt2 = pt + " +";
@@ -403,7 +424,7 @@ void showdelay(long delay, bool light = false, bool beep = false){
 				if (key_old_millis + (keydelay + 10000) <= millis()){
 					stepsize2 = stepsize * 100;
 					pt2 = pt + " ++";
-				}*/
+				}
 				key_old = key;
 
 				switch (key){
@@ -420,12 +441,12 @@ void showdelay(long delay, bool light = false, bool beep = false){
 					done = true;
 					break;
 				case sw_right:
-					wert = wert + stepsize;
+					wert = wert + stepsize2;
 					if (wert > maxwert && maxwert > minwert){ wert = maxwert; }
 					delay(20);
 					break;
 				case sw_left:
-					wert = wert - stepsize;
+					wert = wert - stepsize2;
 					if (wert < minwert){ wert = minwert; }
 					delay(20);
 					break;
@@ -437,25 +458,12 @@ void showdelay(long delay, bool light = false, bool beep = false){
 
 				lcd.setCursor(0, 1);
 				lcd.print(wert);
-				lcd.print(pt);
+				lcd.print(pt2);
 				clear();
 
 			}
 		}
 		return wert;
-	}
-
-	// Convert ADC value to key number
-	int get_key(unsigned int input) {
-		int k;
-		for (k = 0; k < NUM_KEYS; k++) {
-			if (input < adc_key_val[k]) {
-				return k;
-			}
-		}
-		if (k >= NUM_KEYS)
-			k = -1;                               // No valid key pressed
-		return k;
 	}
 
 	//File selection, uses stored files in array files[], user selects index
@@ -507,7 +515,6 @@ void showdelay(long delay, bool light = false, bool beep = false){
 
 	void loop(){
 
-
 		/*		"File select",		//menu 1
 				"Brightness",		//menu 2
 				"Init delay",		//menu 3
@@ -556,15 +563,15 @@ void showdelay(long delay, bool light = false, bool beep = false){
 				{
 					npx.clear();
 					npx.show();
-					tone(BuzzerPin, 440, 50);
+					//tone(BuzzerPin, 440, 50);
 					if (repeat_delay > 0) //beep for repeats before next display starts
 					{
 						delay(repeat_delay);
-						tone(BuzzerPin, 440, 50);
+						//tone(BuzzerPin, 440, 50);
 					}
 				}
 			}
-			tone(BuzzerPin, 880, 500); //beep when whoe sequence ends
+			//tone(BuzzerPin, 880, 500); //beep when whoe sequence ends
 			npx.clear();
 			npx.show();
 			menupos = 99; //go to loop with dark display
